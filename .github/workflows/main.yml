@@ -13,7 +13,7 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Find and Extract ZIP
+    - name: Find and Unzip
       run: |
         ZIP_FILE=$(find . -name "*.zip" | head -n 1)
         if [ -z "$ZIP_FILE" ]; then
@@ -21,45 +21,11 @@ jobs:
         fi
         echo "Extracting $ZIP_FILE..."
         unzip "$ZIP_FILE" -d extracted_project
-        
-        # Sahi folder check karke root par copy karna
-        if [ -d "extracted_project/app" ]; then
-          cp -r extracted_project/* .
-        else
-          SUB_DIR=$(find extracted_project -maxdepth 3 -name "app" -exec dirname {} \;)
-          if [ ! -z "$SUB_DIR" ]; then
-            cp -r $SUB_DIR/* .
-          else
-            echo "📁 Showing extracted structure for debugging:"
-            ls -R extracted_project
-            exit 1
-          fi
-        fi
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: gradle
-
-    - name: Grant execute permission for gradlew
+    - name: Show Folder Structure (Debug)
       run: |
-        if [ -f "gradlew" ]; then
-          chmod +x gradlew
-        else
-          echo "❌ gradlew file not found at root! Searching..."
-          find . -name "gradlew"
-          exit 1
-        fi
-
-    - name: Build with Gradle
-      run: ./gradlew assembleDebug
-
-    - name: Upload APK Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: Jini-AI-App
-        path: |
-          **/build/outputs/apk/debug/*.apk
-          
+        echo "=== Printing Root Files ==="
+        ls -la
+        echo "=== Printing Extracted Project Structure ==="
+        find extracted_project -maxdepth 3
+        
